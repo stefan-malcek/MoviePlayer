@@ -19,6 +19,7 @@ using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Timers;
+using System.Windows.Controls.Primitives;
 using Emgu.Util;
 using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
@@ -100,6 +101,7 @@ namespace MoviePlayer
 
             // Create the ImageBox control.
             _imageBox = new ImageBox();
+            //TODO: disable scrolling
 
             // Assign the ImageBox control as the host control's child.
             host.Child = _imageBox;
@@ -107,6 +109,8 @@ namespace MoviePlayer
             // Add the interop host control to the Grid
             // control's collection of child controls.
             this.ImageBoxHolder.Children.Add(host);
+
+            _cameraTimer.Start();
         }
 
         private void StartTimer(object sender, RoutedEventArgs e)
@@ -164,7 +168,8 @@ namespace MoviePlayer
 
                     //Seconds.Dispatcher.Invoke(() => Warning.Content = _stopwatch.ElapsedMilliseconds);
                 }
-               _imageBox.Image = imageFrame;
+
+                _imageBox.Image = imageFrame?.Resize((int)MainWindowElement.ActualWidth / 4, (int)MainWindowElement.ActualHeight / 4, Inter.Linear);
             }
         }
 
@@ -174,6 +179,26 @@ namespace MoviePlayer
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void sliderProgress_DragStarted(object sender, DragStartedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void sliderProgress_DragCompleted(object sender, DragCompletedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void sliderProgress_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void MainWindow_OnSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            //ImageBoxHolder.Dispatcher.Invoke();
         }
     }
 }

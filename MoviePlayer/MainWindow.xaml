@@ -4,16 +4,80 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MoviePlayer"
+        xmlns:helpers="clr-namespace:MoviePlayer.Helpers"
         mc:Ignorable="d"
         Title="MainWindow" WindowStartupLocation="CenterScreen"
-        Loaded="MainWindow_OnLoaded">
-    <StackPanel>
-        <Grid x:Name="ImageBoxHolder" Width="720" Height="480" HorizontalAlignment="Center">
-        </Grid>
-        <Label x:Name="Warning" Content="{Binding WarningText}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Red" FontSize="40"/>
+        Loaded="MainWindow_OnLoaded" SizeChanged="MainWindow_OnSizeChanged"
+        Height="600" Width="800"
+        MinHeight="600" MinWidth="800" 
+        SizeToContent="WidthAndHeight"
+        x:Name="MainWindowElement">
 
-        <Button Content="Press me" Click="StartTimer"/>
-        <TextBlock Text="{Binding Path=Milliseconds, Mode=TwoWay}"/>
-    </StackPanel>
+    <Window.Resources>
+        <helpers:ImageBoxSizeConvertor x:Key="SizeConvertor"/>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Menu IsMainMenu="True" Grid.Row="0">
+            <MenuItem Header="Menu">
+                <MenuItem Header="Open File" InputGestureText="Ctrl+O"/>
+                <MenuItem Header="Exit" InputGestureText="Ctrl+Q"/>
+            </MenuItem>
+        </Menu>
+        <Grid Grid.Row="1">
+            <MediaElement Name="Player" LoadedBehavior="Manual" Stretch="None"/>
+            <!--<Grid x:Name="Overlay" Panel.ZIndex="1000" Visibility="Collapsed">
+                <Grid.Background>
+                    <SolidColorBrush Color="Black" Opacity=".5"/>
+                </Grid.Background>
+
+             </Grid>-->
+            <Grid x:Name="ImageBoxHolder" Background="Red" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+                  Width="{Binding ElementName=MainWindowElement, Path=ActualWidth, Converter={StaticResource SizeConvertor}}"
+                  Height="{Binding ElementName=MainWindowElement, Path=ActualHeight, Converter={StaticResource SizeConvertor}}"/>
+        </Grid>
+
+        <StatusBar Grid.Row="2">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+            <StatusBarItem Grid.Row="0" Grid.Column="0">
+                <TextBlock Name="LabelProgressStatus">00:00:00</TextBlock>
+            </StatusBarItem>
+            <StatusBarItem Grid.Row="0" Grid.Column="1" HorizontalContentAlignment="Stretch">
+                <Slider Name="SliderProgress" Thumb.DragStarted="sliderProgress_DragStarted" Thumb.DragCompleted="sliderProgress_DragCompleted" 
+                        ValueChanged="sliderProgress_ValueChanged"/>
+            </StatusBarItem>
+            <StatusBarItem Grid.Row="0" Grid.Column="2">
+                <TextBlock Text="{Binding Path=Milliseconds, Mode=TwoWay}"/>
+            </StatusBarItem>
+            <StatusBarItem Grid.Row="1" Grid.Column="0">
+                <Button Content="Press me" Click="StartTimer"/>
+            </StatusBarItem>
+            <StatusBarItem Grid.Row="1" Grid.Column="1">
+                <Label x:Name="Warning" Content="{Binding WarningText}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Red"/>
+            </StatusBarItem>
+            <StatusBarItem Grid.Row="1" Grid.Column="2">
+                <ProgressBar Name="Volume" Width="50" Height="12" Maximum="1" Value="{Binding ElementName=Player, Path=Volume}" />
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
 </Window>
 
