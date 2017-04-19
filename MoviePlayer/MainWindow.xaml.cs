@@ -1,32 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Emgu.CV;
-using System.Drawing;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Timers;
 using System.Windows.Controls.Primitives;
-using Emgu.Util;
+using System.Windows.Threading;
 using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
 using Emgu.CV.UI;
+using Microsoft.Win32;
 using MoviePlayer.Annotations;
+using MoviePlayer.ViewModel;
 using Color = System.Drawing.Color;
-using Path = System.IO.Path;
 using Size = System.Drawing.Size;
 using Timer = System.Timers.Timer;
 
@@ -45,20 +33,24 @@ namespace MoviePlayer
         private readonly Stopwatch _stopwatch;
         private readonly Capture _capture;
         private readonly CascadeClassifier _cascadeClassifier;
+        private readonly DispatcherTimer _dispatcherTimer;
+        //private MainViewModel _mainViewModel;
+
         private ImageBox _imageBox;
         private bool _startStopwatch;
-        private bool _isStopwatchStarted;
-        private string _warningText;
+        //private bool _isStopwatchStarted;
+        private string _notification;
         private long _milliseconds;
+        private bool _isPlaying;
 
-        public string WarningText
+        public string Notification
         {
-            get { return _warningText; }
+            get { return _notification; }
             set
             {
-                if (Equals(value, _warningText)) return;
-                _warningText = value;
-                OnPropertyChanged(nameof(WarningText));
+                if (Equals(value, _notification)) return;
+                _notification = value;
+                OnPropertyChanged(nameof(Notification));
             }
         }
 
@@ -77,7 +69,8 @@ namespace MoviePlayer
         {
             InitializeComponent();
 
-            this.DataContext = this;
+            //_mainViewModel = (MainViewModel)DataContext;
+            //this.DataContext = this;
 
             _capture = new Capture();
             //string path = Path.Combine(Environment.CurrentDirectory, @"haarcascade_frontalface_alt.xml");
@@ -87,11 +80,22 @@ namespace MoviePlayer
             _cameraTimer.Elapsed += new ElapsedEventHandler(CameraTick);
 
             _stopwatch = new Stopwatch();
+            _dispatcherTimer = new DispatcherTimer
+                   (
+                   TimeSpan.FromMinutes(0),
+                   DispatcherPriority.SystemIdle,// Or DispatcherPriority.SystemIdle
+                   (s, e) => ProcessFrame(),
+                   Application.Current.Dispatcher
+                   );
+
+
+           // _dispatcherTimer.IsEnabled = true;
+            // _dispatcherTimer.Tick += DispatcherTimerOnTick;
         }
 
-        private void DistractionTick(object sender, ElapsedEventArgs elapsedEventArgs)
+        private void DispatcherTimerOnTick(object sender, EventArgs eventArgs)
         {
-
+            
         }
 
         private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
@@ -109,8 +113,10 @@ namespace MoviePlayer
             // Add the interop host control to the Grid
             // control's collection of child controls.
             this.ImageBoxHolder.Children.Add(host);
+           _dispatcherTimer.Start();
 
-            _cameraTimer.Start();
+
+            // _cameraTimer.Start();
         }
 
         private void StartTimer(object sender, RoutedEventArgs e)
@@ -128,8 +134,10 @@ namespace MoviePlayer
                 {
                     if (_stopwatch.ElapsedMilliseconds >= 3000)
                     {
+                        //_mainViewModel.Notification = "Warning";
                         Debug.WriteLine("WARNING");
-                        WarningText = "WARNING!";
+                         Notification = "WARNING!";
+                        PauseMovie();
                     }
                 }
                 else
@@ -142,13 +150,16 @@ namespace MoviePlayer
                 if (_stopwatch.IsRunning)
                 {
                     _stopwatch.Stop();
-                    WarningText = string.Empty;
+                    //_mainViewModel.Notification = string.Empty;
+                    Notification = string.Empty;
+                    PlayMovie();
                 }
             }
         }
 
         private void ProcessFrame()
         {
+            Debug.WriteLine("Procces Frame");
             using (var imageFrame = _capture.QueryFrame().ToImage<Bgr, byte>())
             {
                 if (imageFrame != null)
@@ -163,7 +174,7 @@ namespace MoviePlayer
                     }
 
                     Debug.WriteLine("Elapsed time: {0}", _stopwatch.ElapsedMilliseconds);
-                    _startStopwatch = eyes.Length < 2;
+                    _startStopwatch = eyes.Length < 1;
                     Milliseconds = _stopwatch.ElapsedMilliseconds;
 
                     //Seconds.Dispatcher.Invoke(() => Warning.Content = _stopwatch.ElapsedMilliseconds);
@@ -171,6 +182,8 @@ namespace MoviePlayer
 
                 _imageBox.Image = imageFrame?.Resize((int)MainWindowElement.ActualWidth / 4, (int)MainWindowElement.ActualHeight / 4, Inter.Linear);
             }
+
+
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -196,9 +209,89 @@ namespace MoviePlayer
             throw new NotImplementedException();
         }
 
+        private void Open_OnCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+
+        private void Open_OnExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            var openFileDialog = new OpenFileDialog { Filter = "All files (*.*)|*.*" };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                Player.Source = new Uri(openFileDialog.FileName);
+                Debug.WriteLine(openFileDialog.FileName);
+
+                // PlayMovie();
+            }
+        }
+
+        private void Play_OnCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = Player?.Source != null;
+        }
+
+        private void Play_OnExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            PlayMovie();
+        }
+
+        private void PlayMovie()
+        {
+            this.Dispatcher.Invoke(() =>
+            {
+                Player.Play();
+                _isPlaying = true;
+            });
+
+
+        }
+
+        private void PauseMovie()
+        {
+            Debug.WriteLine("Pause");
+
+            this.Dispatcher.Invoke(() =>
+            {
+                Player.Pause();
+            });
+
+        }
+
         private void MainWindow_OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            //ImageBoxHolder.Dispatcher.Invoke();
+            //ProcessFrame();
+        }
+
+        private void Pause_OnCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.Handled = _isPlaying;
+        }
+
+        private void Pause_OnExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            PauseMovie();
+        }
+
+        private void Stop_OnCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.Handled = _isPlaying;
+        }
+
+        private void Stop_OnExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            this.Dispatcher.Invoke(() =>
+            {
+                Player.Stop();
+            });
+        }
+
+        private void MainWindow_OnClosed(object sender, EventArgs e)
+        {
+            _capture.Dispose();
+            _cameraTimer.Dispose();
+            _cascadeClassifier.Dispose();
         }
     }
 }

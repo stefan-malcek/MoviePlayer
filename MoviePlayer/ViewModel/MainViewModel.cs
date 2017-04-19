@@ -16,6 +16,31 @@ namespace MoviePlayer.ViewModel
     /// </summary>
     public class MainViewModel : ViewModelBase
     {
+        private bool _isPlaying;
+        private string _notification;
+
+        public bool IsPlaying
+        {
+            get { return _isPlaying; }
+            set
+            {
+                if (Equals(value, _isPlaying)) return;
+                Set(ref _isPlaying, value);
+                RaisePropertyChanged(() => IsPlaying);
+            }
+        }
+
+        public string Notification
+        {
+            get { return _notification; }
+            set
+            {
+                if (Equals(value, _notification)) return;
+                Set(ref _notification, value);
+                RaisePropertyChanged(() => Notification);
+            }
+        }
+
         /// <summary>
         /// Initializes a new instance of the MainViewModel class.
         /// </summary>
