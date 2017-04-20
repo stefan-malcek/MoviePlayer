@@ -76,17 +76,17 @@ namespace MoviePlayer
             //string path = Path.Combine(Environment.CurrentDirectory, @"haarcascade_frontalface_alt.xml");
             _cascadeClassifier = new CascadeClassifier("haarcascade_eye.xml");
 
-            _cameraTimer = new Timer(250);
-            _cameraTimer.Elapsed += new ElapsedEventHandler(CameraTick);
+            //_cameraTimer = new Timer(250);
+            //_cameraTimer.Elapsed += new ElapsedEventHandler(CameraTick);
 
             _stopwatch = new Stopwatch();
-            _dispatcherTimer = new DispatcherTimer
-                   (
-                   TimeSpan.FromMinutes(0),
-                   DispatcherPriority.SystemIdle,// Or DispatcherPriority.SystemIdle
-                   (s, e) => ProcessFrame(),
-                   Application.Current.Dispatcher
-                   );
+            //_dispatcherTimer = new DispatcherTimer
+            //       (
+            //       TimeSpan.FromMinutes(0),
+            //       DispatcherPriority.SystemIdle,// Or DispatcherPriority.SystemIdle
+            //       (s, e) => ProcessFrame(),
+            //       Application.Current.Dispatcher
+            //       );
 
 
            // _dispatcherTimer.IsEnabled = true;
@@ -101,19 +101,19 @@ namespace MoviePlayer
         private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
         {
             // Create the interop host control.
-            var host = new System.Windows.Forms.Integration.WindowsFormsHost();
+           // var host = new System.Windows.Forms.Integration.WindowsFormsHost();
 
-            // Create the ImageBox control.
-            _imageBox = new ImageBox();
-            //TODO: disable scrolling
+           // // Create the ImageBox control.
+           // _imageBox = new ImageBox();
+           // //TODO: disable scrolling
 
-            // Assign the ImageBox control as the host control's child.
-            host.Child = _imageBox;
+           // // Assign the ImageBox control as the host control's child.
+           // host.Child = _imageBox;
 
-            // Add the interop host control to the Grid
-            // control's collection of child controls.
-            this.ImageBoxHolder.Children.Add(host);
-           _dispatcherTimer.Start();
+           // // Add the interop host control to the Grid
+           // // control's collection of child controls.
+           // this.ImageBoxHolder.Children.Add(host);
+           //_dispatcherTimer.Start();
 
 
             // _cameraTimer.Start();
@@ -126,7 +126,7 @@ namespace MoviePlayer
 
         private void CameraTick(object sender, ElapsedEventArgs elapsedEventArgs)
         {
-            ImageBoxHolder.Dispatcher.Invoke(new ProcessFrameCallback(ProcessFrame));
+           // ImageBox.Dispatcher.Invoke(new ProcessFrameCallback(ProcessFrame));
 
             if (_startStopwatch)
             {
@@ -180,7 +180,7 @@ namespace MoviePlayer
                     //Seconds.Dispatcher.Invoke(() => Warning.Content = _stopwatch.ElapsedMilliseconds);
                 }
 
-                _imageBox.Image = imageFrame?.Resize((int)MainWindowElement.ActualWidth / 4, (int)MainWindowElement.ActualHeight / 4, Inter.Linear);
+                ImageBoxControl.Image = imageFrame?.Resize((int)MainWindowElement.ActualWidth / 4, (int)MainWindowElement.ActualHeight / 4, Inter.Linear);
             }
 
 

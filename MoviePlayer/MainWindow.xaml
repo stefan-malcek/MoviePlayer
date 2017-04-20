@@ -5,6 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MoviePlayer"
         xmlns:helpers="clr-namespace:MoviePlayer.Helpers"
+        xmlns:ui="clr-namespace:Emgu.CV.UI;assembly=Emgu.CV.UI"
+        xmlns:controls="clr-namespace:MoviePlayer.Controls"
         mc:Ignorable="d" SizeChanged="MainWindow_OnSizeChanged"
         Title="MainWindow" WindowStartupLocation="CenterScreen"
         Loaded="MainWindow_OnLoaded" Closed="MainWindow_OnClosed"
@@ -38,11 +40,11 @@
         </Menu>
         <Grid x:Name="MediaGrid"  Grid.Row="1">
             <MediaElement Name="Player" LoadedBehavior="Manual" Stretch="Fill"/>
-            <Grid x:Name="ImageBoxHolder" Background="Red" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+            <controls:ImageBoxControl Background="Red" VerticalAlignment="Bottom" HorizontalAlignment="Right"
                   Width="{Binding ElementName=MainWindowElement, Path=ActualWidth, Converter={StaticResource SizeConvertor}}"
-                  Height="{Binding ElementName=MainWindowElement, Path=ActualHeight, Converter={StaticResource SizeConvertor}}"></Grid>
-            
-            <TextBlock Text="{Binding Notification}" Foreground="Red" FontSize="40" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                  Height="{Binding ElementName=MainWindowElement, Path=ActualHeight, Converter={StaticResource SizeConvertor}}"
+                                     x:Name="ImageBoxControl"></controls:ImageBoxControl>
+                <TextBlock Text="{Binding Notification}" Foreground="Red" FontSize="40" VerticalAlignment="Center" HorizontalAlignment="Center"/>
         </Grid>
 
         <StatusBar Grid.Row="2">
