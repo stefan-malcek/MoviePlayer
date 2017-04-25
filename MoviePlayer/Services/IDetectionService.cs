@@ -8,11 +8,23 @@ using Emgu.CV.Structure;
 
 namespace MoviePlayer.Services
 {
-    public delegate void ImageWithDetectionChangedEventHandler(object sender, Image<Bgr, byte> image);
+    public delegate void ImageWithDetectionChangedEventHandler(object sender, ImageEventArgs e);
     public interface IDetectionService
     {
         event ImageWithDetectionChangedEventHandler ImageWithDetectionChanged;
 
         bool IsDetected { get; }
+    }
+
+    public class ImageEventArgs : EventArgs
+    {
+        public Image<Bgr, byte> Image { get; set; }
+        public bool IsDetecting { get; set; }
+
+        public ImageEventArgs(Image<Bgr, byte> image, bool isDetecting)
+        {
+            Image = image;
+            IsDetecting = isDetecting;
+        }
     }
 }

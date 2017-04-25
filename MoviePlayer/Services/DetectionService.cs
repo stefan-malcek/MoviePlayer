@@ -14,16 +14,16 @@ namespace MoviePlayer.Services
         private const string CascadeName = "haarcascade_eye.xml";
         private readonly ICameraService _cameraService;
         private bool isDetecting = false;
-        private List<Rectangle> _faces;
+        private List<Rectangle> _eyes;
 
         public event ImageWithDetectionChangedEventHandler ImageWithDetectionChanged;
-        public bool IsDetected => _faces.Any();
+        public bool IsDetected => _eyes.Any();
 
         public DetectionService(ICameraService cameraService)
         {
             _cameraService = cameraService;
             _cameraService.ImageChanged += CameraServiceOnImageChanged;
-            _faces = new List<Rectangle>();
+            _eyes = new List<Rectangle>();
         }
 
         private async void CameraServiceOnImageChanged(object sender, Image<Bgr, byte> image)
@@ -36,7 +36,7 @@ namespace MoviePlayer.Services
                 var result = await DetectFacesAsync(image);
 
                 isDelayed = true;
-                _faces = result;
+                _eyes = result;
 
                 isDetecting = false;
             }
@@ -50,7 +50,7 @@ namespace MoviePlayer.Services
 
         private void DrawRectangles(Image<Bgr, byte> image)
         {
-            foreach (var eye in _faces)
+            foreach (var eye in _eyes)
             {
                 image.Draw(eye, new Bgr(Color.BurlyWood), 3);
                 //the detected eye(s) is highlighted here using a box that is drawn around it/them
@@ -98,7 +98,7 @@ namespace MoviePlayer.Services
 
         private void RaiseImageWithDetectionChangedEvent(Image<Bgr, byte> image)
         {
-            ImageWithDetectionChanged?.Invoke(this, image);
+            ImageWithDetectionChanged?.Invoke(this, new ImageEventArgs(image, IsDetected));
         }
     }
 }
