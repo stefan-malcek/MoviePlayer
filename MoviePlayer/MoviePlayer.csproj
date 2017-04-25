@@ -108,12 +108,16 @@
     <Compile Include="Controls\ImageBoxControl.xaml.cs">
       <DependentUpon>ImageBoxControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\BooleanToVisibilityConvertor.cs" />
     <Compile Include="Helpers\ImageBoxSizeConvertor.cs" />
+    <Compile Include="Models\MediaElementCommand.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Services\CameraService.cs" />
+    <Compile Include="Services\FileDialogService.cs" />
     <Compile Include="Services\ICameraService.cs" />
     <Compile Include="Services\IDetectionService.cs" />
     <Compile Include="Services\DetectionService.cs" />
+    <Compile Include="Services\IFileDialogService.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
     <Page Include="Controls\ImageBoxControl.xaml">

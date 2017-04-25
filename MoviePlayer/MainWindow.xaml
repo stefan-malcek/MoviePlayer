@@ -17,11 +17,12 @@
 
     <Window.Resources>
         <helpers:ImageBoxSizeConvertor x:Key="SizeConvertor"/>
+        <helpers:BooleanToVisibilityConverter x:Key="VisibilityConverter"/>
     </Window.Resources>
 
     <Window.CommandBindings>
-        <CommandBinding Command="ApplicationCommands.Open" CanExecute="Open_OnCanExecute" Executed="Open_OnExecuted"/>
-        <CommandBinding Command="MediaCommands.Play" CanExecute="Play_OnCanExecute" Executed="Play_OnExecuted"/>
+        <!--<CommandBinding Command="ApplicationCommands.Open" CanExecute="Open_OnCanExecute" Executed="Open_OnExecuted"/>-->
+        <!--<CommandBinding Command="MediaCommands.Play" CanExecute="Play_OnCanExecute" Executed="Play_OnExecuted"/>-->
         <CommandBinding Command="MediaCommands.Pause" CanExecute="Pause_OnCanExecute" Executed="Pause_OnExecuted"/>
         <CommandBinding Command="MediaCommands.Stop" CanExecute="Stop_OnCanExecute" Executed="Stop_OnExecuted"/>
     </Window.CommandBindings>
@@ -34,17 +35,18 @@
         </Grid.RowDefinitions>
         <Menu IsMainMenu="True" Grid.Row="0">
             <MenuItem Header="Menu">
-                <MenuItem Header="Open File" InputGestureText="Ctrl+O" Command="ApplicationCommands.Open"/>
+                <MenuItem Header="Open File" InputGestureText="Ctrl+O" Command="{Binding BrowseFileCommand}"/>
                 <MenuItem Header="Exit" InputGestureText="Ctrl+Q"/>
             </MenuItem>
         </Menu>
         <Grid x:Name="MediaGrid"  Grid.Row="1">
-            <MediaElement Name="Player" LoadedBehavior="Manual" Stretch="Fill"/>
+            <MediaElement Name="Player" Source="{Binding MovieUri}" LoadedBehavior="Manual" Stretch="Fill"/>
             <controls:ImageBoxControl Background="Red" VerticalAlignment="Bottom" HorizontalAlignment="Right"
                   Width="{Binding ElementName=MainWindowElement, Path=ActualWidth, Converter={StaticResource SizeConvertor}}"
                   Height="{Binding ElementName=MainWindowElement, Path=ActualHeight, Converter={StaticResource SizeConvertor}}"
-                                     x:Name="ImageBoxControl" Image="{Binding Image}"></controls:ImageBoxControl>
-                <TextBlock Text="{Binding Notification}" Foreground="Red" FontSize="40" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                     x:Name="ImageBoxControl" Image="{Binding Image}"
+                                      Visibility="{Binding IsFeedbackActive, Converter={StaticResource VisibilityConverter}}"></controls:ImageBoxControl>
+            <TextBlock Text="{Binding Notification}" Foreground="Red" FontSize="40" VerticalAlignment="Center" HorizontalAlignment="Center"/>
         </Grid>
 
         <StatusBar Grid.Row="2">
@@ -75,9 +77,10 @@
             </StatusBarItem>
             <StatusBarItem Grid.Row="1" Grid.Column="0">
                 <StackPanel Orientation="Horizontal">
-                    <Button Content="Play" Command="MediaCommands.Play"/>
-                    <Button Content="Pause" Command="MediaCommands.Pause"/>
+                    <Button Content="Play" Command="{Binding PlayCommand}"/>
+                    <Button Content="Pause" Command="{Binding PauseCommand}"/>
                     <Button Content="Stop" Command="MediaCommands.Stop"/>
+                    <CheckBox IsChecked="{Binding IsFeedbackActive}"></CheckBox>
                 </StackPanel>
 
             </StatusBarItem>

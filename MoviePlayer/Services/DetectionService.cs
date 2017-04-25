@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -28,23 +29,31 @@ namespace MoviePlayer.Services
 
         private async void CameraServiceOnImageChanged(object sender, Image<Bgr, byte> image)
         {
+            Debug.WriteLine("Image changed" + DateTime.Now.ToString("HH:mm:ss.fff"));
             bool isDelayed = false;
+
             if (!isDetecting)
             {
                 isDetecting = true;
 
                 var result = await DetectFacesAsync(image);
 
-                isDelayed = true;
+                //TODO: fix delaying
+                //isDelayed = true;
                 _eyes = result;
 
                 isDetecting = false;
             }
 
-            if (!isDelayed)// to prevent displaing delayed image
+            if (!isDelayed) // to prevent displaing delayed image
             {
+                Debug.WriteLine("Image changed not delayed" + DateTime.Now.ToString("HH:mm:ss.fff"));
                 DrawRectangles(image);
                 RaiseImageWithDetectionChangedEvent(image);
+            }
+            else
+            {
+                Debug.WriteLine("Image changed delayed" + DateTime.Now.ToString("HH:mm:ss.fff"));
             }
         }
 

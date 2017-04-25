@@ -1,8 +1,12 @@
+using System;
 using System.Diagnostics;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using GalaSoft.MvvmLight;
+using GalaSoft.MvvmLight.CommandWpf;
+using GalaSoft.MvvmLight.Messaging;
+using MoviePlayer.Models;
 using MoviePlayer.Services;
 
 namespace MoviePlayer.ViewModel
@@ -25,6 +29,7 @@ namespace MoviePlayer.ViewModel
 
         private readonly ICameraService _cameraService;
         private readonly IDetectionService _detectionService;
+        private readonly IFileDialogService _fileDialogService;
         private readonly Stopwatch _stopwatch;
         private bool _isPlaying;
         private string _notification;
@@ -32,6 +37,8 @@ namespace MoviePlayer.ViewModel
         private double _windowWidth;
         private double _windowHeight;
         private long _milliseconds;
+        private Uri _movieUri;
+        private bool _isFeedbackActive;
 
         public bool IsPlaying
         {
@@ -67,13 +74,29 @@ namespace MoviePlayer.ViewModel
 
         public Image<Bgr, byte> Image
         {
-            get { return _image.Resize((int)WindowWidth / 4, (int)WindowHeight / 4, Inter.Linear); }
+            get
+            {
+                //if (WindowHeight == 0 || WindowWidth == 0) return _image;
+                return _image.Resize((int)WindowWidth / 4, (int)WindowHeight / 4, Inter.Linear);
+            }
             set
             {
                 Set(ref _image, value);
                 RaisePropertyChanged(() => Image);
             }
         }
+
+        public Uri MovieUri
+        {
+            get { return _movieUri; }
+            set
+            {
+                Set(ref _movieUri, value);
+                RaisePropertyChanged(() => MovieUri);
+            }
+        }
+
+        public bool CanPlayMovie => MovieUri != null;
 
         public double WindowWidth
         {
@@ -95,14 +118,70 @@ namespace MoviePlayer.ViewModel
             }
         }
 
+        public bool IsFeedbackActive
+        {
+            get { return _isFeedbackActive; }
+            set
+            {
+                Set(ref _isFeedbackActive, value);
+                RaisePropertyChanged(() => IsFeedbackActive);
+            }
+        }
+
+        public RelayCommand BrowseFileCommand { get; set; }
+        public RelayCommand PlayCommand { get; set; }
+        public RelayCommand PauseCommand { get; set; }
+        public RelayCommand StopCommand { get; set; }
+
         public MainViewModel()
         {
             _cameraService = new CameraService();
             _detectionService = new DetectionService(_cameraService);
+            _fileDialogService = new FileDialogService();
             _detectionService.ImageWithDetectionChanged += _faceDetectionService_ImageChanged;
             _stopwatch = new Stopwatch();
             _cameraService.Run();
+            IsFeedbackActive = true;
+            BrowseFileCommand = new RelayCommand(BrowseMovie);
+            PlayCommand = new RelayCommand(PlayMovie, () => CanPlayMovie);
+            PauseCommand = new RelayCommand(PauseMovie, () => IsPlaying);
         }
+
+
+        private void PlayMovie()
+        {
+            Messenger.Default.Send(MediaElementCommand.Play);
+            IsPlaying = true;
+        }
+
+        private void PauseMovie()
+        {
+            Messenger.Default.Send(MediaElementCommand.Pause);
+            IsPlaying = false;
+        }
+
+        public void BrowseMovie()
+        {
+            string fileName = _fileDialogService.BrowseMovie();
+            Debug.WriteLine("BrowseMovie");
+
+            if (fileName != null)
+            {
+                MovieUri = new Uri(fileName);
+                // Notification = fileName;
+                // ExecuteWatchVideo(fileName);
+            }
+        }
+
+        //private void ExecuteWatchVideo(string videouri)
+        //{
+        //    // media element is in an entirely separate usercontrol
+        //    var msg = videouri;
+
+        //    //listVisibility = Visibility.Collapsed;
+        //    //RaisePropertyChanged("ListVisibility");
+
+        //}
 
 
         /// <summary>
@@ -120,7 +199,7 @@ namespace MoviePlayer.ViewModel
         private void _faceDetectionService_ImageChanged(object sender, ImageEventArgs e)
         {
             this.Image = e.Image;
-
+            Debug.WriteLine("Detection_ImageChanged");
             if (!e.IsDetecting)
             {
                 if (_stopwatch.IsRunning)
@@ -131,6 +210,8 @@ namespace MoviePlayer.ViewModel
                         //_mainViewModel.Notification = "Warning";
                         Debug.WriteLine("WARNING");
                         Notification = "WARNING!";
+                        if (CanPlayMovie)
+                            PauseMovie();
                         //PauseMovie();
                     }
                 }
@@ -145,6 +226,8 @@ namespace MoviePlayer.ViewModel
                 _stopwatch.Restart();
                 //_mainViewModel.Notification = string.Empty;
                 Notification = string.Empty;
+                if (CanPlayMovie)
+                   PlayMovie();
                 // PlayMovie();
             }
 

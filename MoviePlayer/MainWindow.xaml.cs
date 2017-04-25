@@ -11,8 +11,10 @@ using System.Windows.Threading;
 using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
 using Emgu.CV.UI;
+using GalaSoft.MvvmLight.Messaging;
 using Microsoft.Win32;
 using MoviePlayer.Annotations;
+using MoviePlayer.Models;
 using MoviePlayer.ViewModel;
 using Color = System.Drawing.Color;
 using Size = System.Drawing.Size;
@@ -87,33 +89,70 @@ namespace MoviePlayer
             //       (s, e) => ProcessFrame(),
             //       Application.Current.Dispatcher
             //       );
+            Messenger.Default.Register<MediaElementCommand>(this, (action) => ReceivePlayVideoMessage(action));
 
-
-           // _dispatcherTimer.IsEnabled = true;
+            // _dispatcherTimer.IsEnabled = true;
             // _dispatcherTimer.Tick += DispatcherTimerOnTick;
+        }
+
+        private object ReceivePlayVideoMessage(MediaElementCommand command)
+        {
+            switch (command)
+            {
+                case MediaElementCommand.Play:
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        Player.Play();
+                    });
+                    break;
+                case MediaElementCommand.Pause:
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        Player.Pause();
+                    });
+                    
+                    break;
+                case MediaElementCommand.Stop:
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        Player.Stop();
+                    });
+                    break;
+                default:
+                    Debug.WriteLine("Default");
+                    break; // throw new InvalidOperationException("Invalid operation");
+            }
+
+            //if (playVideo != null)
+            //{
+            //    //Player.Source = new Uri(playVideo, UriKind.Relative);
+            //    //this.Visibility = Visibility.Visible;
+            //    Player.Play();
+            //}
+            return null;
         }
 
         private void DispatcherTimerOnTick(object sender, EventArgs eventArgs)
         {
-            
+
         }
 
         private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
         {
             // Create the interop host control.
-           // var host = new System.Windows.Forms.Integration.WindowsFormsHost();
+            // var host = new System.Windows.Forms.Integration.WindowsFormsHost();
 
-           // // Create the ImageBox control.
-           // _imageBox = new ImageBox();
-           // //TODO: disable scrolling
+            // // Create the ImageBox control.
+            // _imageBox = new ImageBox();
+            // //TODO: disable scrolling
 
-           // // Assign the ImageBox control as the host control's child.
-           // host.Child = _imageBox;
+            // // Assign the ImageBox control as the host control's child.
+            // host.Child = _imageBox;
 
-           // // Add the interop host control to the Grid
-           // // control's collection of child controls.
-           // this.ImageBoxHolder.Children.Add(host);
-           //_dispatcherTimer.Start();
+            // // Add the interop host control to the Grid
+            // // control's collection of child controls.
+            // this.ImageBoxHolder.Children.Add(host);
+            //_dispatcherTimer.Start();
 
 
             // _cameraTimer.Start();
@@ -126,7 +165,7 @@ namespace MoviePlayer
 
         private void CameraTick(object sender, ElapsedEventArgs elapsedEventArgs)
         {
-           // ImageBox.Dispatcher.Invoke(new ProcessFrameCallback(ProcessFrame));
+            // ImageBox.Dispatcher.Invoke(new ProcessFrameCallback(ProcessFrame));
 
             if (_startStopwatch)
             {
@@ -136,7 +175,7 @@ namespace MoviePlayer
                     {
                         //_mainViewModel.Notification = "Warning";
                         Debug.WriteLine("WARNING");
-                         Notification = "WARNING!";
+                        Notification = "WARNING!";
                         PauseMovie();
                     }
                 }

@@ -25,7 +25,7 @@ namespace MoviePlayer.Services
             Debug.WriteLine("DoWork");
             while (!_worker.CancellationPending)
             {
-                Debug.WriteLine("DoWork_Loop");
+              Debug.WriteLine("DoWork_Loop");
                 RaiseImageChangedEvent(_capture.QuerySmallFrame().ToImage<Bgr, byte>());
             }
         }
