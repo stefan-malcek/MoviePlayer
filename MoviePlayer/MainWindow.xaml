@@ -10,9 +10,9 @@
         mc:Ignorable="d" SizeChanged="MainWindow_OnSizeChanged"
         Title="MainWindow" WindowStartupLocation="CenterScreen"
         Loaded="MainWindow_OnLoaded" Closed="MainWindow_OnClosed"
-        Height="600" Width="800"
+        Height="600" Width="800" 
         MinHeight="600" MinWidth="800" 
-        SizeToContent="WidthAndHeight"
+        SizeToContent="WidthAndHeight"  DataContext="{Binding Main, Source={StaticResource Locator}}"
         x:Name="MainWindowElement">
 
     <Window.Resources>
@@ -43,7 +43,7 @@
             <controls:ImageBoxControl Background="Red" VerticalAlignment="Bottom" HorizontalAlignment="Right"
                   Width="{Binding ElementName=MainWindowElement, Path=ActualWidth, Converter={StaticResource SizeConvertor}}"
                   Height="{Binding ElementName=MainWindowElement, Path=ActualHeight, Converter={StaticResource SizeConvertor}}"
-                                     x:Name="ImageBoxControl"></controls:ImageBoxControl>
+                                     x:Name="ImageBoxControl" Image="{Binding Image}"></controls:ImageBoxControl>
                 <TextBlock Text="{Binding Notification}" Foreground="Red" FontSize="40" VerticalAlignment="Center" HorizontalAlignment="Center"/>
         </Grid>
 

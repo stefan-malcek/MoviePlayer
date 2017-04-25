@@ -34,7 +34,7 @@ namespace MoviePlayer
         private readonly Capture _capture;
         private readonly CascadeClassifier _cascadeClassifier;
         private readonly DispatcherTimer _dispatcherTimer;
-        //private MainViewModel _mainViewModel;
+        private MainViewModel _mainViewModel;
 
         private ImageBox _imageBox;
         private bool _startStopwatch;
@@ -69,7 +69,7 @@ namespace MoviePlayer
         {
             InitializeComponent();
 
-            //_mainViewModel = (MainViewModel)DataContext;
+            _mainViewModel = (MainViewModel)DataContext;
             //this.DataContext = this;
 
             _capture = new Capture();
@@ -261,7 +261,8 @@ namespace MoviePlayer
 
         private void MainWindow_OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            //ProcessFrame();
+            _mainViewModel.WindowWidth = MainWindowElement.ActualWidth;
+            _mainViewModel.WindowHeight = MainWindowElement.ActualHeight;
         }
 
         private void Pause_OnCanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -290,7 +291,7 @@ namespace MoviePlayer
         private void MainWindow_OnClosed(object sender, EventArgs e)
         {
             _capture.Dispose();
-            _cameraTimer.Dispose();
+            //_cameraTimer.Dispose();
             _cascadeClassifier.Dispose();
         }
     }
