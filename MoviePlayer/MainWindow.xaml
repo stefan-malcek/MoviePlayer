@@ -7,6 +7,7 @@
         xmlns:helpers="clr-namespace:MoviePlayer.Helpers"
         xmlns:ui="clr-namespace:Emgu.CV.UI;assembly=Emgu.CV.UI"
         xmlns:controls="clr-namespace:MoviePlayer.Controls"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         mc:Ignorable="d" SizeChanged="MainWindow_OnSizeChanged"
         Title="MainWindow" WindowStartupLocation="CenterScreen"
         Loaded="MainWindow_OnLoaded" Closed="MainWindow_OnClosed"
@@ -16,8 +17,9 @@
         x:Name="MainWindowElement">
 
     <Window.Resources>
-        <helpers:ImageBoxSizeConvertor x:Key="SizeConvertor"/>
+        <helpers:ImageBoxSizeConverter x:Key="SizeConvertor"/>
         <helpers:BooleanToVisibilityConverter x:Key="VisibilityConverter"/>
+        <helpers:BitmapToImageSourceConverter x:Key="ImageSourceConverter"/>
     </Window.Resources>
 
     <Window.CommandBindings>
@@ -40,12 +42,13 @@
             </MenuItem>
         </Menu>
         <Grid x:Name="MediaGrid"  Grid.Row="1">
-            <MediaElement Name="Player" Source="{Binding MovieUri}" LoadedBehavior="Manual" Stretch="Fill"/>
-            <controls:ImageBoxControl Background="Red" VerticalAlignment="Bottom" HorizontalAlignment="Right"
-                  Width="{Binding ElementName=MainWindowElement, Path=ActualWidth, Converter={StaticResource SizeConvertor}}"
-                  Height="{Binding ElementName=MainWindowElement, Path=ActualHeight, Converter={StaticResource SizeConvertor}}"
-                                     x:Name="ImageBoxControl" Image="{Binding Image}"
-                                      Visibility="{Binding IsFeedbackActive, Converter={StaticResource VisibilityConverter}}"></controls:ImageBoxControl>
+            <MediaElement Name="Player" Source="{Binding MovieUri}" Volume="{Binding Volume}" ScrubbingEnabled="True" 
+                          LoadedBehavior="Manual" Stretch="Fill" MouseLeftButtonUp="MediaPlayer_MouseLeftButtonUp"/>
+            <controls:ImageBoxControl x:Name="ImageBoxControl" Image="{Binding Image}" 
+                                      VerticalAlignment="Bottom" HorizontalAlignment="Right" Milliseconds="{Binding Milliseconds}"
+                                      Width="{Binding ElementName=MainWindowElement, Path=ActualWidth, Converter={StaticResource SizeConvertor}}"
+                                      Height="{Binding ElementName=MainWindowElement, Path=ActualHeight, Converter={StaticResource SizeConvertor}}"
+                                      Visibility="{Binding IsFeedbackActive, Converter={StaticResource VisibilityConverter}}"/>
             <TextBlock Text="{Binding Notification}" Foreground="Red" FontSize="40" VerticalAlignment="Center" HorizontalAlignment="Center"/>
         </Grid>
 
@@ -69,18 +72,23 @@
                 <TextBlock Name="LabelProgressStatus">00:00:00</TextBlock>
             </StatusBarItem>
             <StatusBarItem Grid.Row="0" Grid.Column="1" HorizontalContentAlignment="Stretch">
-                <Slider Name="SliderProgress" Thumb.DragStarted="sliderProgress_DragStarted" Thumb.DragCompleted="sliderProgress_DragCompleted" 
-                        ValueChanged="sliderProgress_ValueChanged"/>
+                <Slider Name="SliderProgress" IsEnabled="{Binding IsPlaying}"
+                        Thumb.DragStarted="sliderProgress_DragStarted" Thumb.DragCompleted="sliderProgress_DragCompleted" 
+                        ValueChanged="sliderProgress_ValueChanged" IsMoveToPointEnabled="True"/>
             </StatusBarItem>
             <StatusBarItem Grid.Row="0" Grid.Column="2">
-                <TextBlock Text="{Binding Path=Milliseconds, Mode=TwoWay}"/>
+                <TextBlock Text="{Binding Milliseconds}" 
+                           Visibility="{Binding IsFeedbackActive, Converter={StaticResource VisibilityConverter}}"/>
             </StatusBarItem>
-            <StatusBarItem Grid.Row="1" Grid.Column="0">
+            <StatusBarItem Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="1">
                 <StackPanel Orientation="Horizontal">
                     <Button Content="Play" Command="{Binding PlayCommand}"/>
                     <Button Content="Pause" Command="{Binding PauseCommand}"/>
-                    <Button Content="Stop" Command="MediaCommands.Stop"/>
-                    <CheckBox IsChecked="{Binding IsFeedbackActive}"></CheckBox>
+                    <Button Content="Stop" Command="{Binding StopCommand}"/>
+                
+                        <CheckBox Content="Show feedback" IsChecked="{Binding IsFeedbackActive}"/>
+                        <CheckBox Content="Allow auto resume" IsChecked="{Binding IsAutoPlayAllowed}"/>
+                    <!--</StackPanel>-->
                 </StackPanel>
 
             </StatusBarItem>
@@ -88,7 +96,7 @@
                 <Label x:Name="Warning" Content="{Binding Notification}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Red"/>
             </StatusBarItem>
             <StatusBarItem Grid.Row="1" Grid.Column="2">
-                <ProgressBar Name="Volume" Width="50" Height="12" Maximum="1" Value="{Binding ElementName=Player, Path=Volume}" />
+                <Slider Minimum="0" Maximum="1" Value="{Binding Volume, Mode=TwoWay}" VerticalAlignment="Center" Width="100" IsMoveToPointEnabled="True"/>
             </StatusBarItem>
         </StatusBar>
     </Grid>

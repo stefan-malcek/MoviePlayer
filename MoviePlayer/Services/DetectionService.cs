@@ -39,7 +39,7 @@ namespace MoviePlayer.Services
                 var result = await DetectFacesAsync(image);
 
                 //TODO: fix delaying
-                //isDelayed = true;
+                isDelayed = true;
                 _eyes = result;
 
                 isDetecting = false;

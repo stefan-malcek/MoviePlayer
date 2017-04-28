@@ -25,7 +25,7 @@ namespace MoviePlayer.Services
             Debug.WriteLine("DoWork");
             while (!_worker.CancellationPending)
             {
-              Debug.WriteLine("DoWork_Loop");
+                Debug.WriteLine("DoWork_Loop");
                 RaiseImageChangedEvent(_capture.QuerySmallFrame().ToImage<Bgr, byte>());
             }
         }
@@ -33,11 +33,17 @@ namespace MoviePlayer.Services
         ~CameraService()
         {
             _capture?.Dispose();
+
+            if (IsRunning)
+            {
+                Cancel();
+            }
+
+            _worker?.Dispose();
         }
 
         public void Run()
         {
-            Debug.WriteLine("run");
             _worker.RunWorkerAsync();
         }
 

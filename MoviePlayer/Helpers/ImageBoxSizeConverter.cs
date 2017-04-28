@@ -8,7 +8,7 @@ using System.Windows.Data;
 
 namespace MoviePlayer.Helpers
 {
-    public class ImageBoxSizeConvertor : IValueConverter
+    public class ImageBoxSizeConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

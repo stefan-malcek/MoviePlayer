@@ -3,11 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:MoviePlayer.Controls"
-             xmlns:ui="clr-namespace:Emgu.CV.UI;assembly=Emgu.CV.UI"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
-    <WindowsFormsHost>
-        <ui:ImageBox x:Name="CameraFeedback"/>
-    </WindowsFormsHost>
+    <Grid>
+        <Image x:Name="CameraImage"/>
+        <Label x:Name="MillisecondsLabel" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="White" 
+               BorderThickness="0.5" BorderBrush="Black" FontSize="10"/>
+    </Grid>
 </UserControl>

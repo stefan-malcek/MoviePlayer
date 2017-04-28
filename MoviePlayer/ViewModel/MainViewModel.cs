@@ -39,6 +39,9 @@ namespace MoviePlayer.ViewModel
         private long _milliseconds;
         private Uri _movieUri;
         private bool _isFeedbackActive;
+        private bool _isAutoPlayAllowed;
+        private double _volume;
+        private string _moviePath;
 
         public bool IsPlaying
         {
@@ -86,6 +89,16 @@ namespace MoviePlayer.ViewModel
             }
         }
 
+        public string MoviePath
+        {
+            get { return _moviePath; }
+            set
+            {
+                _moviePath = value;
+                RaisePropertyChanged(() => CanPlayMovie);
+            }
+        }
+
         public Uri MovieUri
         {
             get { return _movieUri; }
@@ -93,10 +106,21 @@ namespace MoviePlayer.ViewModel
             {
                 Set(ref _movieUri, value);
                 RaisePropertyChanged(() => MovieUri);
+                // RaisePropertyChanged(() => CanPlayMovie);
             }
         }
 
-        public bool CanPlayMovie => MovieUri != null;
+        public double Volume
+        {
+            get { return _volume; }
+            set
+            {
+                Set(ref _volume, value);
+                RaisePropertyChanged(() => Volume);
+            }
+        }
+
+        public bool CanPlayMovie => MoviePath != null;
 
         public double WindowWidth
         {
@@ -128,10 +152,20 @@ namespace MoviePlayer.ViewModel
             }
         }
 
-        public RelayCommand BrowseFileCommand { get; set; }
-        public RelayCommand PlayCommand { get; set; }
-        public RelayCommand PauseCommand { get; set; }
-        public RelayCommand StopCommand { get; set; }
+        public bool IsAutoPlayAllowed
+        {
+            get { return _isAutoPlayAllowed; }
+            set
+            {
+                Set(ref _isAutoPlayAllowed, value);
+                RaisePropertyChanged(() => IsAutoPlayAllowed);
+            }
+        }
+
+        public RelayCommand BrowseFileCommand { get; private set; }
+        public RelayCommand PlayCommand { get; private set; }
+        public RelayCommand PauseCommand { get; private set; }
+        public RelayCommand StopCommand { get; private set; }
 
         public MainViewModel()
         {
@@ -141,47 +175,30 @@ namespace MoviePlayer.ViewModel
             _detectionService.ImageWithDetectionChanged += _faceDetectionService_ImageChanged;
             _stopwatch = new Stopwatch();
             _cameraService.Run();
+
             IsFeedbackActive = true;
+            Volume = 1;
+
             BrowseFileCommand = new RelayCommand(BrowseMovie);
             PlayCommand = new RelayCommand(PlayMovie, () => CanPlayMovie);
             PauseCommand = new RelayCommand(PauseMovie, () => IsPlaying);
-        }
-
-
-        private void PlayMovie()
-        {
-            Messenger.Default.Send(MediaElementCommand.Play);
-            IsPlaying = true;
-        }
-
-        private void PauseMovie()
-        {
-            Messenger.Default.Send(MediaElementCommand.Pause);
-            IsPlaying = false;
+            StopCommand = new RelayCommand(StopMovie, () => IsPlaying);
         }
 
         public void BrowseMovie()
         {
-            string fileName = _fileDialogService.BrowseMovie();
-            Debug.WriteLine("BrowseMovie");
+            MoviePath = _fileDialogService.BrowseMovie();
 
-            if (fileName != null)
+            if (MoviePath == null)
             {
-                MovieUri = new Uri(fileName);
-                // Notification = fileName;
-                // ExecuteWatchVideo(fileName);
+                return;
+            }
+
+            if (IsAutoPlayAllowed)
+            {
+                PlayMovie();
             }
         }
-
-        //private void ExecuteWatchVideo(string videouri)
-        //{
-        //    // media element is in an entirely separate usercontrol
-        //    var msg = videouri;
-
-        //    //listVisibility = Visibility.Collapsed;
-        //    //RaisePropertyChanged("ListVisibility");
-
-        //}
 
 
         /// <summary>
@@ -210,8 +227,13 @@ namespace MoviePlayer.ViewModel
                         //_mainViewModel.Notification = "Warning";
                         Debug.WriteLine("WARNING");
                         Notification = "WARNING!";
-                        if (CanPlayMovie)
+                        if (CanPlayMovie && IsAutoPlayAllowed)
+                        {
                             PauseMovie();
+                            PauseCommand.RaiseCanExecuteChanged();
+                            StopCommand.RaiseCanExecuteChanged();
+                        }
+
                         //PauseMovie();
                     }
                 }
@@ -226,12 +248,37 @@ namespace MoviePlayer.ViewModel
                 _stopwatch.Restart();
                 //_mainViewModel.Notification = string.Empty;
                 Notification = string.Empty;
-                if (CanPlayMovie)
-                   PlayMovie();
+                if (CanPlayMovie && IsAutoPlayAllowed)
+                {
+                    PlayMovie();
+                    PauseCommand.RaiseCanExecuteChanged();
+                    StopCommand.RaiseCanExecuteChanged();
+                }
+
                 // PlayMovie();
             }
 
             Milliseconds = _stopwatch.ElapsedMilliseconds;
+        }
+
+
+        private void PlayMovie()
+        {
+            Messenger.Default.Send(MediaElementCommand.Play);
+            MovieUri = new Uri(MoviePath);
+            IsPlaying = true;
+        }
+
+        private void PauseMovie()
+        {
+            Messenger.Default.Send(MediaElementCommand.Pause);
+        }
+
+        private void StopMovie()
+        {
+            Messenger.Default.Send(MediaElementCommand.Stop);
+            MovieUri = null;
+            IsPlaying = false;
         }
     }
 }

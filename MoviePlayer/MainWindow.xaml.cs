@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using Emgu.CV;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Timers;
 using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
@@ -44,6 +45,10 @@ namespace MoviePlayer
         private string _notification;
         private long _milliseconds;
         private bool _isPlaying;
+        private bool _userIsDraggingSlider;
+
+        private bool fullscreen = false;
+        private DispatcherTimer DoubleClickTimer = new DispatcherTimer();
 
         public string Notification
         {
@@ -93,6 +98,57 @@ namespace MoviePlayer
 
             // _dispatcherTimer.IsEnabled = true;
             // _dispatcherTimer.Tick += DispatcherTimerOnTick;
+
+
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(1);
+            timer.Tick += timer_Tick;
+            timer.Start();
+
+            DoubleClickTimer.Interval = TimeSpan.FromMilliseconds(GetDoubleClickTime());
+            DoubleClickTimer.Tick += (s, e) => DoubleClickTimer.Stop();
+
+        }
+
+        private void MediaPlayer_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (!DoubleClickTimer.IsEnabled)
+            {
+                DoubleClickTimer.Start();
+            }
+            else
+            {
+                if (!fullscreen)
+                {
+                    this.WindowStyle = WindowStyle.None;
+                    this.WindowState = WindowState.Maximized;
+                }
+                else
+                {
+                    this.WindowStyle = WindowStyle.SingleBorderWindow;
+                    this.WindowState = WindowState.Normal;
+                }
+
+                fullscreen = !fullscreen;
+            }
+        }
+
+        [DllImport("user32.dll")]
+        private static extern uint GetDoubleClickTime();
+
+        private void timer_Tick(object sender, EventArgs e)
+        {
+            if ((Player.Source != null) && (Player.NaturalDuration.HasTimeSpan) && (!_userIsDraggingSlider))
+            {
+                SliderProgress.Minimum = 0;
+                SliderProgress.Maximum = Player.NaturalDuration.TimeSpan.TotalSeconds;
+                SliderProgress.Value = Player.Position.TotalSeconds;
+            }
+        }
+
+        private void ResetProgressSlider()
+        {
+            SliderProgress.Value = 0;
         }
 
         private object ReceivePlayVideoMessage(MediaElementCommand command)
@@ -110,12 +166,13 @@ namespace MoviePlayer
                     {
                         Player.Pause();
                     });
-                    
+
                     break;
                 case MediaElementCommand.Stop:
                     this.Dispatcher.Invoke(() =>
                     {
                         Player.Stop();
+                        ResetProgressSlider();
                     });
                     break;
                 default:
@@ -233,19 +290,35 @@ namespace MoviePlayer
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        private void sliProgress_DragStarted(object sender, DragStartedEventArgs e)
+        {
+
+        }
+
+        private void sliProgress_DragCompleted(object sender, DragCompletedEventArgs e)
+        {
+
+        }
+
+        private void sliProgress_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+
+        }
+
         private void sliderProgress_DragStarted(object sender, DragStartedEventArgs e)
         {
-            throw new NotImplementedException();
+            _userIsDraggingSlider = true;
         }
 
         private void sliderProgress_DragCompleted(object sender, DragCompletedEventArgs e)
         {
-            throw new NotImplementedException();
+            _userIsDraggingSlider = false;
+            Player.Position = TimeSpan.FromSeconds(SliderProgress.Value);
         }
 
         private void sliderProgress_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            throw new NotImplementedException();
+            LabelProgressStatus.Text = TimeSpan.FromSeconds(SliderProgress.Value).ToString(@"hh\:mm\:ss");
         }
 
         private void Open_OnCanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -333,5 +406,7 @@ namespace MoviePlayer
             //_cameraTimer.Dispose();
             _cascadeClassifier.Dispose();
         }
+
+
     }
 }
