@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
-using Emgu.CV;
 
-namespace MoviePlayer.Helpers
+namespace MoviePlayer.Converters
 {
     public class BitmapToImageSourceConverter : IValueConverter
     {

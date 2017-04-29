@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
 using Emgu.CV;
 using Emgu.CV.Structure;
 
@@ -22,10 +21,8 @@ namespace MoviePlayer.Services
 
         private void Worker_CaptureImage(object sender, DoWorkEventArgs doWorkEventArgs)
         {
-            Debug.WriteLine("DoWork");
             while (!_worker.CancellationPending)
             {
-                Debug.WriteLine("DoWork_Loop");
                 RaiseImageChangedEvent(_capture.QuerySmallFrame().ToImage<Bgr, byte>());
             }
         }

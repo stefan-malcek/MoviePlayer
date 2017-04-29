@@ -26,7 +26,7 @@ namespace MoviePlayer.ViewModel
     /// </summary>
     public class MainViewModel : ViewModelBase
     {
-        private const int TimeToShowWarning = 3000;
+        private const int TimeToShowWarning = 5000;
 
         private readonly ICameraService _cameraService;
         private readonly IDetectionService _detectionService;
@@ -86,6 +86,7 @@ namespace MoviePlayer.ViewModel
         }
 
         public bool CanPlayMovie => MoviePath != null;
+
         public string Title => $"{MoviePath?.Substring(MoviePath.LastIndexOf('\\') + 1)}" +
                                $"{(MoviePath == null ? "" : " - ")}Movie Player";
 
@@ -102,10 +103,21 @@ namespace MoviePlayer.ViewModel
             {
                 Set(ref _volume, value);
                 RaisePropertyChanged(() => VolumeString);
+                RaisePropertyChanged(() => VolumeLevel);
             }
         }
 
         public string VolumeString => $"{Volume * 100:0}%";
+
+        public VolumeLevel VolumeLevel
+        {
+            get
+            {
+                if (Volume > 0.7) return VolumeLevel.High;
+                if (Volume > 0.3) return VolumeLevel.Medium;
+                return Math.Abs(Volume) < 0.001 ? VolumeLevel.None : VolumeLevel.Low;
+            }
+        }
 
         public bool IsFeedbackActive
         {
@@ -144,7 +156,7 @@ namespace MoviePlayer.ViewModel
             StopCommand = new RelayCommand(StopMovie, () => IsPlaying);
             ChangeFeedbackStateCommand = new RelayCommand(() => IsFeedbackActive = !IsFeedbackActive);
             ChangeInteractionStateCommand = new RelayCommand(() => IsAutoPlayAllowed = !IsAutoPlayAllowed);
-            
+
         }
 
         public override void Cleanup()
@@ -192,8 +204,6 @@ namespace MoviePlayer.ViewModel
         {
             Image = e.Image;
 
-
-            Debug.WriteLine("Detection_ImageChanged");
             if (!e.IsDetecting)
             {
                 if (_stopwatch.IsRunning)
