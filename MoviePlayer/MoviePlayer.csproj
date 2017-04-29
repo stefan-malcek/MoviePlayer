@@ -170,6 +170,27 @@
   <ItemGroup>
     <Resource Include="haarcascade_eye.xml" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\play.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\pause.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\stop.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\no volume.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\medium volume.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\open folder icon.png" />
+    <Resource Include="Images\pause icon.png" />
+    <Resource Include="Images\play icon.png" />
+    <Resource Include="Images\stop icon.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

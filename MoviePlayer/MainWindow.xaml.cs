@@ -276,7 +276,7 @@ namespace MoviePlayer
                     //Seconds.Dispatcher.Invoke(() => Warning.Content = _stopwatch.ElapsedMilliseconds);
                 }
 
-                ImageBoxControl.Image = imageFrame?.Resize((int)MainWindowElement.ActualWidth / 4, (int)MainWindowElement.ActualHeight / 4, Inter.Linear);
+                // ImageBoxControl.Image = imageFrame?.Resize((int)MainWindowElement.ActualWidth / 4, (int)MainWindowElement.ActualHeight / 4, Inter.Linear);
             }
 
 
@@ -373,8 +373,7 @@ namespace MoviePlayer
 
         private void MainWindow_OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            _mainViewModel.WindowWidth = MainWindowElement.ActualWidth;
-            _mainViewModel.WindowHeight = MainWindowElement.ActualHeight;
+            _mainViewModel.SetWindowsSize(MainWindowElement.ActualWidth, MainWindowElement.ActualHeight);
         }
 
         private void Pause_OnCanExecute(object sender, CanExecuteRoutedEventArgs e)

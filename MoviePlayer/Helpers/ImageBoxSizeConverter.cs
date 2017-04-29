@@ -12,6 +12,7 @@ namespace MoviePlayer.Helpers
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+
             var size = int.Parse(value?.ToString() ?? "0");
             return size / 4;
         }

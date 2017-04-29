@@ -2,6 +2,7 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Emgu.CV;
 
@@ -15,17 +16,17 @@ namespace MoviePlayer.Controls
         /// <summary>
         /// Identified the Label dependency property
         /// </summary>
-        public static readonly DependencyProperty ImageValueProperty =
-            DependencyProperty.Register("Image", typeof(IImage),
+        public static readonly DependencyProperty ImageSourceProperty =
+            DependencyProperty.Register("ImageSource", typeof(ImageSource),
               typeof(ImageBoxControl), new UIPropertyMetadata(null, ImagePropertyChanged));
 
         /// <summary>
         /// Gets or sets the Value which is being displayed
         /// </summary>
-        public IImage Image
+        public ImageSource ImageSource
         {
-            get { return (IImage)GetValue(ImageValueProperty); }
-            set { SetValue(ImageValueProperty, value); }
+            get { return (ImageSource)GetValue(ImageSourceProperty); }
+            set { SetValue(ImageSourceProperty, value); }
         }
 
         public static readonly DependencyProperty MillisecondsProperty =
@@ -38,13 +39,6 @@ namespace MoviePlayer.Controls
             set { SetValue(MillisecondsProperty, value); }
         }
 
-        private static void MillisecondsPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            var control = (ImageBoxControl)d;
-            control.MillisecondsLabel.Content = $"Eyes not detected: {e.NewValue:D3}mls";
-        }
-
-
         public ImageBoxControl()
         {
             InitializeComponent();
@@ -53,19 +47,13 @@ namespace MoviePlayer.Controls
         private static void ImagePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var control = (ImageBoxControl)d;
-            using (MemoryStream ms = new MemoryStream())
-            {
-                ((System.Drawing.Bitmap)((IImage)e.NewValue).Bitmap).Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
-                BitmapImage image = new BitmapImage();
-                image.BeginInit();
-                ms.Seek(0, SeekOrigin.Begin);
-                image.StreamSource = new MemoryStream(ms.ToArray());
-                image.EndInit();
+            control.CameraImage.Source = (ImageSource)e.NewValue;
+        }
 
-                control.CameraImage.Source = image;
-            }
-
-            //  control.CameraFeedback.Image = (IImage)e.NewValue;
+        private static void MillisecondsPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var control = (ImageBoxControl)d;
+            control.MillisecondsLabel.Content = $"Eyes not detected: {e.NewValue:D3}ms";
         }
     }
 }

@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
+using Emgu.CV;
 
 namespace MoviePlayer.Helpers
 {
@@ -17,8 +20,8 @@ namespace MoviePlayer.Helpers
 
             using (MemoryStream ms = new MemoryStream())
             {
-                ((System.Drawing.Bitmap)value).Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
-                BitmapImage image = new BitmapImage();
+                ((Bitmap)value).Save(ms, ImageFormat.Bmp);
+                var image = new BitmapImage();
                 image.BeginInit();
                 ms.Seek(0, SeekOrigin.Begin);
                 image.StreamSource = new MemoryStream(ms.ToArray());

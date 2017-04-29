@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
@@ -46,48 +47,32 @@ namespace MoviePlayer.ViewModel
         public bool IsPlaying
         {
             get { return _isPlaying; }
-            set
-            {
-                if (Equals(value, _isPlaying)) return;
-                Set(ref _isPlaying, value);
-                RaisePropertyChanged(() => IsPlaying);
-            }
+            set { Set(ref _isPlaying, value); }
         }
 
         public string Notification
         {
             get { return _notification; }
-            set
-            {
-                if (Equals(value, _notification)) return;
-                Set(ref _notification, value);
-                RaisePropertyChanged(() => Notification);
-            }
+            set { Set(ref _notification, value); }
         }
 
         public long Milliseconds
         {
             get { return _milliseconds; }
-            set
-            {
-                Set(ref _milliseconds, value);
-                RaisePropertyChanged(() => Milliseconds);
-            }
+            set { Set(ref _milliseconds, value); }
         }
 
         public Image<Bgr, byte> Image
         {
-            get
-            {
-                //if (WindowHeight == 0 || WindowWidth == 0) return _image;
-                return _image.Resize((int)WindowWidth / 4, (int)WindowHeight / 4, Inter.Linear);
-            }
+            get { return _image; }
             set
             {
-                Set(ref _image, value);
-                RaisePropertyChanged(() => Image);
+                _image = value;
+                RaisePropertyChanged(() => Bitmap);
             }
         }
+
+        public Bitmap Bitmap => Image.Resize((int)_windowWidth / 4, (int)_windowHeight / 4, Inter.Linear).Bitmap;
 
         public string MoviePath
         {
@@ -96,18 +81,18 @@ namespace MoviePlayer.ViewModel
             {
                 _moviePath = value;
                 RaisePropertyChanged(() => CanPlayMovie);
+                RaisePropertyChanged(() => Title);
             }
         }
+
+        public bool CanPlayMovie => MoviePath != null;
+        public string Title => $"{MoviePath?.Substring(MoviePath.LastIndexOf('\\') + 1)}" +
+                               $"{(MoviePath == null ? "" : " - ")}Movie Player";
 
         public Uri MovieUri
         {
             get { return _movieUri; }
-            set
-            {
-                Set(ref _movieUri, value);
-                RaisePropertyChanged(() => MovieUri);
-                // RaisePropertyChanged(() => CanPlayMovie);
-            }
+            set { Set(ref _movieUri, value); }
         }
 
         public double Volume
@@ -116,56 +101,30 @@ namespace MoviePlayer.ViewModel
             set
             {
                 Set(ref _volume, value);
-                RaisePropertyChanged(() => Volume);
+                RaisePropertyChanged(() => VolumeString);
             }
         }
 
-        public bool CanPlayMovie => MoviePath != null;
-
-        public double WindowWidth
-        {
-            get { return _windowWidth; }
-            set
-            {
-                _windowWidth = value;
-                RaisePropertyChanged(() => Image);
-            }
-        }
-
-        public double WindowHeight
-        {
-            get { return _windowHeight; }
-            set
-            {
-                _windowHeight = value;
-                RaisePropertyChanged(() => Image);
-            }
-        }
+        public string VolumeString => $"{Volume * 100:0}%";
 
         public bool IsFeedbackActive
         {
             get { return _isFeedbackActive; }
-            set
-            {
-                Set(ref _isFeedbackActive, value);
-                RaisePropertyChanged(() => IsFeedbackActive);
-            }
+            set { Set(ref _isFeedbackActive, value); }
         }
 
         public bool IsAutoPlayAllowed
         {
             get { return _isAutoPlayAllowed; }
-            set
-            {
-                Set(ref _isAutoPlayAllowed, value);
-                RaisePropertyChanged(() => IsAutoPlayAllowed);
-            }
+            set { Set(ref _isAutoPlayAllowed, value); }
         }
 
         public RelayCommand BrowseFileCommand { get; private set; }
         public RelayCommand PlayCommand { get; private set; }
         public RelayCommand PauseCommand { get; private set; }
         public RelayCommand StopCommand { get; private set; }
+        public RelayCommand ChangeFeedbackStateCommand { get; set; }
+        public RelayCommand ChangeInteractionStateCommand { get; set; }
 
         public MainViewModel()
         {
@@ -183,9 +142,25 @@ namespace MoviePlayer.ViewModel
             PlayCommand = new RelayCommand(PlayMovie, () => CanPlayMovie);
             PauseCommand = new RelayCommand(PauseMovie, () => IsPlaying);
             StopCommand = new RelayCommand(StopMovie, () => IsPlaying);
+            ChangeFeedbackStateCommand = new RelayCommand(() => IsFeedbackActive = !IsFeedbackActive);
+            ChangeInteractionStateCommand = new RelayCommand(() => IsAutoPlayAllowed = !IsAutoPlayAllowed);
+            
         }
 
-        public void BrowseMovie()
+        public override void Cleanup()
+        {
+            base.Cleanup();
+            _cameraService.Cancel();
+        }
+
+        public void SetWindowsSize(double width, double height)
+        {
+            _windowWidth = width;
+            _windowHeight = height;
+            RaisePropertyChanged(() => Bitmap);
+        }
+
+        private void BrowseMovie()
         {
             MoviePath = _fileDialogService.BrowseMovie();
 
@@ -215,7 +190,9 @@ namespace MoviePlayer.ViewModel
 
         private void _faceDetectionService_ImageChanged(object sender, ImageEventArgs e)
         {
-            this.Image = e.Image;
+            Image = e.Image;
+
+
             Debug.WriteLine("Detection_ImageChanged");
             if (!e.IsDetecting)
             {
