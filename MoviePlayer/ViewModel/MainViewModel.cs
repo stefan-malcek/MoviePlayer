@@ -33,6 +33,7 @@ namespace MoviePlayer.ViewModel
         private readonly IFileDialogService _fileDialogService;
         private readonly Stopwatch _stopwatch;
         private bool _isPlaying;
+        private bool _isPaused;
         private string _notification;
         private Image<Bgr, byte> _image;
         private double _windowWidth;
@@ -40,7 +41,7 @@ namespace MoviePlayer.ViewModel
         private long _milliseconds;
         private Uri _movieUri;
         private bool _isFeedbackActive;
-        private bool _isAutoPlayAllowed;
+        private bool _isInteractionAllowed;
         private double _volume;
         private string _moviePath;
 
@@ -48,6 +49,12 @@ namespace MoviePlayer.ViewModel
         {
             get { return _isPlaying; }
             set { Set(ref _isPlaying, value); }
+        }
+
+        public bool IsPaused
+        {
+            get { return _isPaused; }
+            set { Set(ref _isPaused, value); }
         }
 
         public string Notification
@@ -125,14 +132,14 @@ namespace MoviePlayer.ViewModel
             set { Set(ref _isFeedbackActive, value); }
         }
 
-        public bool IsAutoPlayAllowed
+        public bool IsInteractionAllowed
         {
-            get { return _isAutoPlayAllowed; }
-            set { Set(ref _isAutoPlayAllowed, value); }
+            get { return _isInteractionAllowed; }
+            set { Set(ref _isInteractionAllowed, value); }
         }
 
         public RelayCommand BrowseFileCommand { get; private set; }
-        public RelayCommand PlayCommand { get; private set; }
+        public RelayCommand PlayPauseCommand { get; private set; }
         public RelayCommand PauseCommand { get; private set; }
         public RelayCommand StopCommand { get; private set; }
         public RelayCommand ChangeFeedbackStateCommand { get; set; }
@@ -151,11 +158,11 @@ namespace MoviePlayer.ViewModel
             Volume = 1;
 
             BrowseFileCommand = new RelayCommand(BrowseMovie);
-            PlayCommand = new RelayCommand(PlayMovie, () => CanPlayMovie);
-            PauseCommand = new RelayCommand(PauseMovie, () => IsPlaying);
+            PlayPauseCommand = new RelayCommand(PlayPauseMovie, () => CanPlayMovie);
+            PauseCommand = new RelayCommand(PlayPauseMovie, () => CanPlayMovie);
             StopCommand = new RelayCommand(StopMovie, () => IsPlaying);
             ChangeFeedbackStateCommand = new RelayCommand(() => IsFeedbackActive = !IsFeedbackActive);
-            ChangeInteractionStateCommand = new RelayCommand(() => IsAutoPlayAllowed = !IsAutoPlayAllowed);
+            ChangeInteractionStateCommand = new RelayCommand(() => IsInteractionAllowed = !IsInteractionAllowed);
 
         }
 
@@ -174,17 +181,15 @@ namespace MoviePlayer.ViewModel
 
         private void BrowseMovie()
         {
-            MoviePath = _fileDialogService.BrowseMovie();
+            string path = _fileDialogService.BrowseMovie();
 
-            if (MoviePath == null)
+            if (path == null)
             {
                 return;
             }
 
-            if (IsAutoPlayAllowed)
-            {
-                PlayMovie();
-            }
+            MoviePath = path;
+            PlayMovie();
         }
 
 
@@ -214,11 +219,10 @@ namespace MoviePlayer.ViewModel
                         //_mainViewModel.Notification = "Warning";
                         Debug.WriteLine("WARNING");
                         Notification = "WARNING!";
-                        if (CanPlayMovie && IsAutoPlayAllowed)
+                        if (IsPlaying && IsInteractionAllowed)
                         {
                             PauseMovie();
-                            PauseCommand.RaiseCanExecuteChanged();
-                            StopCommand.RaiseCanExecuteChanged();
+                            PlayPauseCommand.RaiseCanExecuteChanged();
                         }
 
                         //PauseMovie();
@@ -235,11 +239,12 @@ namespace MoviePlayer.ViewModel
                 _stopwatch.Restart();
                 //_mainViewModel.Notification = string.Empty;
                 Notification = string.Empty;
-                if (CanPlayMovie && IsAutoPlayAllowed)
+                if (IsPlaying && IsInteractionAllowed)
                 {
                     PlayMovie();
-                    PauseCommand.RaiseCanExecuteChanged();
-                    StopCommand.RaiseCanExecuteChanged();
+                    PlayPauseCommand.RaiseCanExecuteChanged();
+                    //PlayPauseMovieCommand.RaiseCanExecuteChanged();
+                    //StopCommand.RaiseCanExecuteChanged();
                 }
 
                 // PlayMovie();
@@ -249,22 +254,43 @@ namespace MoviePlayer.ViewModel
         }
 
 
+        private void PlayPauseMovie()
+        {
+            if (!IsPlaying)
+            {
+                PlayMovie();
+                return;
+            }
+
+            if (IsPaused)
+            {
+                PlayMovie();
+            }
+            else
+            {
+                PauseMovie();
+            }
+        }
+
         private void PlayMovie()
         {
             Messenger.Default.Send(MediaElementCommand.Play);
             MovieUri = new Uri(MoviePath);
+            IsPaused = false;
             IsPlaying = true;
         }
 
         private void PauseMovie()
         {
             Messenger.Default.Send(MediaElementCommand.Pause);
+            IsPaused = true;
         }
 
         private void StopMovie()
         {
             Messenger.Default.Send(MediaElementCommand.Stop);
             MovieUri = null;
+            IsPaused = false;
             IsPlaying = false;
         }
     }

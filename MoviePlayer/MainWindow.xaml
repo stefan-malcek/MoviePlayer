@@ -16,6 +16,11 @@
         <converters:BooleanToVisibilityConverter x:Key="VisibilityConverter"/>
         <converters:BitmapToImageSourceConverter x:Key="ImageSourceConverter"/>
 
+        <Image x:Key="PlayImage" Source="Images/play.png"/>
+        <Image x:Key="PauseImage" Source="Images/pause.png"/>
+        <Image x:Key="PlayIconImage" Source="Images/play icon.png"/>
+        <Image x:Key="PauseIconImage" Source="Images/pause icon.png"/>
+
         <Style TargetType="{x:Type Button}">
             <Setter Property="Width" Value="30"/>
             <Setter Property="Margin" Value="0,5,2.5,5"/>
@@ -29,12 +34,42 @@
                 </Style>
             </Style.Resources>
         </Style>
-        
+
+        <Style x:Key="PlayPauseButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Content" Value="{StaticResource PlayImage}"/>
+            <Setter Property="ToolTip" Value="Play"/>
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsPlaying}" Value="True" />
+                        <Condition Binding="{Binding IsPaused}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Content" Value="{StaticResource PauseImage}"/>
+                    <Setter Property="ToolTip" Value="Pause"/>
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <Style TargetType="{x:Type MenuItem}">
             <Style.Triggers>
                 <Trigger Property="IsEnabled" Value="False">
                     <Setter Property="Opacity" Value="0.25"/>
                 </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PlayPauseMenuItemStyle" TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
+            <Setter Property="Icon" Value="{StaticResource PlayIconImage}"/>
+            <Setter Property="Header" Value="Play"/>
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsPlaying}" Value="True" />
+                        <Condition Binding="{Binding IsPaused}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Icon" Value="{StaticResource PauseIconImage}"/>
+                    <Setter Property="Header" Value="Pause"/>
+                </MultiDataTrigger>
             </Style.Triggers>
         </Style>
 
@@ -64,7 +99,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="60"/>
         </Grid.RowDefinitions>
         <Menu IsMainMenu="True" Grid.Row="0">
             <MenuItem Header="Menu">
@@ -75,20 +110,11 @@
                 </MenuItem>
                 <MenuItem Header="Show camera frames" IsChecked="{Binding IsFeedbackActive}" 
                           Command="{Binding ChangeFeedbackStateCommand}"/>
-                <MenuItem Header="Allow interaction" IsChecked="{Binding IsAutoPlayAllowed}" 
+                <MenuItem Header="Allow interaction" IsChecked="{Binding IsInteractionAllowed}" 
                           Command="{Binding ChangeInteractionStateCommand}"/>
             </MenuItem>
             <MenuItem Header="Movie">
-                <MenuItem Header="Play" Command="{Binding PlayCommand}">
-                    <MenuItem.Icon>
-                        <Image Source="Images/play icon.png"/>
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="Pause" Command="{Binding PauseCommand}">
-                    <MenuItem.Icon>
-                        <Image Source="Images/pause icon.png"/>
-                    </MenuItem.Icon>
-                </MenuItem>
+                <MenuItem Command="{Binding PlayPauseCommand}" Style="{StaticResource PlayPauseMenuItemStyle}"/>
                 <MenuItem Header="Stop" Command="{Binding StopCommand}">
                     <MenuItem.Icon>
                         <Image Source="Images/stop icon.png"/>
@@ -148,24 +174,18 @@
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
             <StatusBarItem Grid.Column="0">
-                <Button Command="{Binding PlayCommand}" Width="45" Margin="10,7.5">
-                    <Image Source="Images/play.png"/>
-                </Button>
-            </StatusBarItem>
-            <StatusBarItem Grid.Column="1">
-                <Button Command="{Binding PauseCommand}">
-                    <Image Source="Images/pause.png"/>
-                </Button>
+                <Button Command="{Binding PlayPauseCommand}" Width="45" Margin="10,7.5" 
+                        Style="{StaticResource  PlayPauseButtonStyle}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="2">
-                <Button Command="{Binding StopCommand}">
+                <Button ToolTip="Stop"  Command="{Binding StopCommand}">
                     <Image Source="Images/stop.png"/>
                 </Button>
             </StatusBarItem>
             <StatusBarItem Grid.Column="3">
                 <StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="10,0,0,0">
                     <CheckBox Content="Show camera frames" IsChecked="{Binding IsFeedbackActive}"/>
-                    <CheckBox Content="Allow interaction" IsChecked="{Binding IsAutoPlayAllowed}"/>
+                    <CheckBox Content="Allow interaction" IsChecked="{Binding IsInteractionAllowed}"/>
                 </StackPanel>
             </StatusBarItem>
             <StatusBarItem Grid.Column="5">
