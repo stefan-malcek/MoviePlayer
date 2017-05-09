@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel;
 using Emgu.CV;
 using Emgu.CV.Structure;
+using GalaSoft.MvvmLight.Messaging;
+using MoviePlayer.Services.Interfaces;
 
 namespace MoviePlayer.Services
 {
@@ -10,21 +12,12 @@ namespace MoviePlayer.Services
         private readonly BackgroundWorker _worker;
 
         public bool IsRunning => _worker?.IsBusy ?? false;
-        public event ImageChangedEventHandler ImageChanged;
 
         public CameraService()
         {
             _capture = new Capture();
             _worker = new BackgroundWorker { WorkerSupportsCancellation = true };
             _worker.DoWork += Worker_CaptureImage;
-        }
-
-        private void Worker_CaptureImage(object sender, DoWorkEventArgs doWorkEventArgs)
-        {
-            while (!_worker.CancellationPending)
-            {
-                RaiseImageChangedEvent(_capture.QuerySmallFrame().ToImage<Bgr, byte>());
-            }
         }
 
         ~CameraService()
@@ -49,9 +42,12 @@ namespace MoviePlayer.Services
             _worker.CancelAsync();
         }
 
-        private void RaiseImageChangedEvent(Image<Bgr, byte> image)
+        private void Worker_CaptureImage(object sender, DoWorkEventArgs doWorkEventArgs)
         {
-            ImageChanged?.Invoke(this, image);
+            while (!_worker.CancellationPending)
+            {
+                Messenger.Default.Send(_capture.QuerySmallFrame().ToImage<Bgr, byte>());
+            }
         }
     }
 }

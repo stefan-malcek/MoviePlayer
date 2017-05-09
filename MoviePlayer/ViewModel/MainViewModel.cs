@@ -8,7 +8,9 @@ using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
 using GalaSoft.MvvmLight.Messaging;
 using MoviePlayer.Models;
+using MoviePlayer.Models.Enums;
 using MoviePlayer.Services;
+using MoviePlayer.Services.Interfaces;
 
 namespace MoviePlayer.ViewModel
 {
@@ -26,6 +28,7 @@ namespace MoviePlayer.ViewModel
     /// </summary>
     public class MainViewModel : ViewModelBase
     {
+        private const string CascadeName = "haarcascade_eye.xml";
         private const int TimeToShowWarning = 5000;
 
         private readonly ICameraService _cameraService;
@@ -140,7 +143,6 @@ namespace MoviePlayer.ViewModel
 
         public RelayCommand BrowseFileCommand { get; private set; }
         public RelayCommand PlayPauseCommand { get; private set; }
-        public RelayCommand PauseCommand { get; private set; }
         public RelayCommand StopCommand { get; private set; }
         public RelayCommand ChangeFeedbackStateCommand { get; set; }
         public RelayCommand ChangeInteractionStateCommand { get; set; }
@@ -148,22 +150,23 @@ namespace MoviePlayer.ViewModel
         public MainViewModel()
         {
             _cameraService = new CameraService();
-            _detectionService = new DetectionService(_cameraService);
+            _detectionService = new DetectionService();
             _fileDialogService = new FileDialogService();
-            _detectionService.ImageWithDetectionChanged += _faceDetectionService_ImageChanged;
             _stopwatch = new Stopwatch();
-            _cameraService.Run();
 
             IsFeedbackActive = true;
             Volume = 1;
 
             BrowseFileCommand = new RelayCommand(BrowseMovie);
             PlayPauseCommand = new RelayCommand(PlayPauseMovie, () => CanPlayMovie);
-            PauseCommand = new RelayCommand(PlayPauseMovie, () => CanPlayMovie);
             StopCommand = new RelayCommand(StopMovie, () => IsPlaying);
             ChangeFeedbackStateCommand = new RelayCommand(() => IsFeedbackActive = !IsFeedbackActive);
             ChangeInteractionStateCommand = new RelayCommand(() => IsInteractionAllowed = !IsInteractionAllowed);
 
+            Messenger.Default.Register<ProccessedImage>(this, ReceiveProcessedImage);
+
+            _detectionService.SetFilter(CascadeName);
+            _cameraService.Run();
         }
 
         public override void Cleanup()
@@ -177,6 +180,46 @@ namespace MoviePlayer.ViewModel
             _windowWidth = width;
             _windowHeight = height;
             RaisePropertyChanged(() => Bitmap);
+        }
+
+        private void ReceiveProcessedImage(ProccessedImage image)
+        {
+            Image = image.Image;
+
+            if (!image.IsEyeDetected)
+            {
+                if (_stopwatch.IsRunning)
+                {
+                    if (_stopwatch.ElapsedMilliseconds >= TimeToShowWarning)
+                    {
+                        Notification = "WARNING!";
+                        if (IsPlaying && IsInteractionAllowed)
+                        {
+                            PauseMovie();
+                            PlayPauseCommand.RaiseCanExecuteChanged();
+                        }
+                    }
+                }
+                else
+                {
+                    _stopwatch.Start();
+                }
+            }
+            else
+            {
+                if (!_stopwatch.IsRunning) return;
+
+                _stopwatch.Restart();
+                Notification = string.Empty;
+
+                if (IsPlaying && IsInteractionAllowed)
+                {
+                    PlayMovie();
+                    PlayPauseCommand.RaiseCanExecuteChanged();
+                }
+            }
+
+            Milliseconds = _stopwatch.ElapsedMilliseconds;
         }
 
         private void BrowseMovie()
@@ -204,55 +247,6 @@ namespace MoviePlayer.ViewModel
 
         //    _cameraService.Run();
         //}
-
-        private void _faceDetectionService_ImageChanged(object sender, ImageEventArgs e)
-        {
-            Image = e.Image;
-
-            if (!e.IsDetecting)
-            {
-                if (_stopwatch.IsRunning)
-                {
-
-                    if (_stopwatch.ElapsedMilliseconds >= TimeToShowWarning)
-                    {
-                        //_mainViewModel.Notification = "Warning";
-                        Debug.WriteLine("WARNING");
-                        Notification = "WARNING!";
-                        if (IsPlaying && IsInteractionAllowed)
-                        {
-                            PauseMovie();
-                            PlayPauseCommand.RaiseCanExecuteChanged();
-                        }
-
-                        //PauseMovie();
-                    }
-                }
-                else
-                {
-                    _stopwatch.Start();
-                }
-            }
-            else
-            {
-                if (!_stopwatch.IsRunning) return;
-                _stopwatch.Restart();
-                //_mainViewModel.Notification = string.Empty;
-                Notification = string.Empty;
-                if (IsPlaying && IsInteractionAllowed)
-                {
-                    PlayMovie();
-                    PlayPauseCommand.RaiseCanExecuteChanged();
-                    //PlayPauseMovieCommand.RaiseCanExecuteChanged();
-                    //StopCommand.RaiseCanExecuteChanged();
-                }
-
-                // PlayMovie();
-            }
-
-            Milliseconds = _stopwatch.ElapsedMilliseconds;
-        }
-
 
         private void PlayPauseMovie()
         {

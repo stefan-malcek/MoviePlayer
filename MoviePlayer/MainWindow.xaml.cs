@@ -1,52 +1,22 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
-using System.Windows.Input;
-using Emgu.CV;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Timers;
 using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
-using Emgu.CV.Structure;
-using Emgu.CV.CvEnum;
-using Emgu.CV.UI;
 using GalaSoft.MvvmLight.Messaging;
-using Microsoft.Win32;
-using MoviePlayer.Annotations;
-using MoviePlayer.Models;
+using MoviePlayer.Models.Enums;
 using MoviePlayer.ViewModel;
-using Color = System.Drawing.Color;
-using Size = System.Drawing.Size;
-using Timer = System.Timers.Timer;
 
 namespace MoviePlayer
 {
-    // public delegate void 
-
-
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
         private const string DurationPattern = @"hh\:mm\:ss";
-        //private readonly Timer _cameraTimer;
-        //private readonly Stopwatch _stopwatch;
-        //private readonly Capture _capture;
-        //private readonly CascadeClassifier _cascadeClassifier;
-        //private readonly DispatcherTimer _dispatcherTimer;
         private readonly MainViewModel _mainViewModel;
         private readonly DispatcherTimer _progressSliderTimer;
-
-
-        //private ImageBox _imageBox;
-        //private bool _startStopwatch;
-        ////private bool _isStopwatchStarted;
-        //private string _notification;
-        //private long _milliseconds;
-        //private bool _isPlaying;
         private bool _userIsDraggingSlider;
         private double _movieLength;
 
@@ -60,14 +30,6 @@ namespace MoviePlayer
 
             _progressSliderTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _progressSliderTimer.Tick += timer_Tick;
-        }
-
-        private void timer_Tick(object sender, EventArgs e)
-        {
-            if (Player.NaturalDuration.HasTimeSpan && !_userIsDraggingSlider)
-            {
-                ProgressSlider.Value = Player.Position.TotalSeconds;
-            }
         }
 
         private void ReceiveMediaElementCommand(MediaElementCommand command)
@@ -89,34 +51,13 @@ namespace MoviePlayer
             }
         }
 
-
-        //private void ProcessFrame()
-        //{
-        //    Debug.WriteLine("Procces Frame");
-        //    using (var imageFrame = _capture.QueryFrame().ToImage<Bgr, byte>())
-        //    {
-        //        if (imageFrame != null)
-        //        {
-        //            var grayframe = imageFrame.Convert<Gray, byte>();
-        //            var eyes = _cascadeClassifier.DetectMultiScale(grayframe, 1.1, 10, Size.Empty);
-        //            //the actual eye detection happens here
-        //            foreach (var eye in eyes)
-        //            {
-        //                imageFrame.Draw(eye, new Bgr(Color.BurlyWood), 3);
-        //                //the detected eye(s) is highlighted here using a box that is drawn around it/them
-        //            }
-
-        //            Debug.WriteLine("Elapsed time: {0}", _stopwatch.ElapsedMilliseconds);
-        //            _startStopwatch = eyes.Length < 1;
-
-        //            //Seconds.Dispatcher.Invoke(() => Warning.Content = _stopwatch.ElapsedMilliseconds);
-        //        }
-
-        //        // ImageBoxControl.Image = imageFrame?.Resize((int)MainWindowElement.ActualWidth / 4, (int)MainWindowElement.ActualHeight / 4, Inter.Linear);
-        //    }
-
-
-        //}
+        private void timer_Tick(object sender, EventArgs e)
+        {
+            if (Player.NaturalDuration.HasTimeSpan && !_userIsDraggingSlider)
+            {
+                ProgressSlider.Value = Player.Position.TotalSeconds;
+            }
+        }
 
         private void sliderProgress_DragStarted(object sender, DragStartedEventArgs e)
         {
@@ -142,8 +83,6 @@ namespace MoviePlayer
             {
                 Player.Play();
             });
-            //setup Slider
-            
         }
 
         private void PauseMovie()
