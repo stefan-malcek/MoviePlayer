@@ -38,34 +38,16 @@ namespace MoviePlayer.Services
 
         private async void ReceiveImage(Image<Bgr, byte> image)
         {
-            var isDelayed = false;
-            //Debug.WriteLine($"1. isDelayed: {isDelayed}, isDetecting: {_isDetecting}, time: {DateTime.Now.ToString("HH:mm:ss.fff")}");
-
             if (!_isDetecting)
             {
                 _isDetecting = true;
-                //Debug.WriteLine($"3. isDelayed: {isDelayed}, isDetecting: {_isDetecting}, time: {DateTime.Now.ToString("HH:mm:ss.fff")}");
                 var result = await DetectFacesAsync(image);
-                //Debug.WriteLine($"4. isDelayed: {isDelayed}, isDetecting: {_isDetecting}, time: {DateTime.Now.ToString("HH:mm:ss.fff")}");
-                //TODO: fix delaying
-                // isDelayed = true;
                 _detectedObjects = result;
-                //Debug.WriteLine($"5. isDelayed: {isDelayed}, isDetecting: {_isDetecting}, time: {DateTime.Now.ToString("HH:mm:ss.fff")}");
                 _isDetecting = false;
-                //Debug.WriteLine($"6. isDelayed: {isDelayed}, isDetecting: {_isDetecting}, time: {DateTime.Now.ToString("HH:mm:ss.fff")}");
             }
-           // Debug.WriteLine($"7. isDelayed: {isDelayed}, isDetecting: {_isDetecting}, time: {DateTime.Now.ToString("HH:mm:ss.fff")}");
-            if (!isDelayed) // to prevent displaing delayed image
-            {
-                //Debug.WriteLine($"8. isDelayed: {isDelayed}, isDetecting: {_isDetecting}, time: {DateTime.Now.ToString("HH:mm:ss.fff")}");
-                //Debug.WriteLine("Image changed not delayed" + DateTime.Now.ToString("HH:mm:ss.fff"));
-                DrawRectangles(image);
-                Messenger.Default.Send(new ProccessedImage { Image = image, IsEyeDetected = IsObjectDetected });
-            }
-            //else
-            //{
-            //    Debug.WriteLine("Image changed delayed" + DateTime.Now.ToString("HH:mm:ss.fff"));
-            //}
+
+            DrawRectangles(image);
+            Messenger.Default.Send(new ProccessedImage { Image = image, IsEyeDetected = IsObjectDetected });
         }
 
         private Task<List<Rectangle>> DetectFacesAsync(Image<Bgr, byte> image)

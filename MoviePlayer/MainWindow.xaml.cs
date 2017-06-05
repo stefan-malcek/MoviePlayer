@@ -26,8 +26,7 @@ namespace MoviePlayer
 
             _mainViewModel = (MainViewModel)DataContext;
             Messenger.Default.Register<MediaElementCommand>(this, ReceiveMediaElementCommand);
-
-
+            
             _progressSliderTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _progressSliderTimer.Tick += timer_Tick;
         }
@@ -47,7 +46,7 @@ namespace MoviePlayer
                     break;
                 default:
                     Debug.WriteLine("Default");
-                    break; // throw new InvalidOperationException("Invalid operation");
+                    break;
             }
         }
 
@@ -107,7 +106,7 @@ namespace MoviePlayer
 
         private void MainWindow_OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            _mainViewModel.SetWindowsSize(MainWindowElement.ActualWidth, MainWindowElement.ActualHeight);
+            _mainViewModel?.SetWindowsSize(MainWindowElement.ActualWidth, MainWindowElement.ActualHeight);
         }
 
         private void Player_OnMediaEnded(object sender, RoutedEventArgs e)

@@ -35,9 +35,9 @@ namespace MoviePlayer.ViewModel
         private readonly IDetectionService _detectionService;
         private readonly IFileDialogService _fileDialogService;
         private readonly Stopwatch _stopwatch;
+
         private bool _isPlaying;
         private bool _isPaused;
-        private string _notification;
         private Image<Bgr, byte> _image;
         private double _windowWidth;
         private double _windowHeight;
@@ -58,12 +58,6 @@ namespace MoviePlayer.ViewModel
         {
             get { return _isPaused; }
             set { Set(ref _isPaused, value); }
-        }
-
-        public string Notification
-        {
-            get { return _notification; }
-            set { Set(ref _notification, value); }
         }
 
         public long Milliseconds
@@ -147,16 +141,18 @@ namespace MoviePlayer.ViewModel
         public RelayCommand ChangeFeedbackStateCommand { get; set; }
         public RelayCommand ChangeInteractionStateCommand { get; set; }
 
-        public MainViewModel()
+        public MainViewModel(ICameraService cameraService, IDetectionService detectionService,
+            IFileDialogService fileDialogService)
         {
-            _cameraService = new CameraService();
-            _detectionService = new DetectionService();
-            _fileDialogService = new FileDialogService();
+            _cameraService = cameraService;
+            _detectionService = detectionService;
+            _fileDialogService = fileDialogService;
             _stopwatch = new Stopwatch();
 
             IsFeedbackActive = true;
             Volume = 1;
-
+            Image = new Image<Bgr, byte>(new Size(0,0));
+        
             BrowseFileCommand = new RelayCommand(BrowseMovie);
             PlayPauseCommand = new RelayCommand(PlayPauseMovie, () => CanPlayMovie);
             StopCommand = new RelayCommand(StopMovie, () => IsPlaying);
@@ -188,17 +184,13 @@ namespace MoviePlayer.ViewModel
 
             if (!image.IsEyeDetected)
             {
-                if (_stopwatch.IsRunning)
+                if (_stopwatch.IsRunning && //stopwatch is running
+                    _stopwatch.ElapsedMilliseconds >= TimeToShowWarning && //checks the inverval
+                    IsPlaying &&
+                    IsInteractionAllowed)
                 {
-                    if (_stopwatch.ElapsedMilliseconds >= TimeToShowWarning)
-                    {
-                        Notification = "WARNING!";
-                        if (IsPlaying && IsInteractionAllowed)
-                        {
-                            PauseMovie();
-                            PlayPauseCommand.RaiseCanExecuteChanged();
-                        }
-                    }
+                    PauseMovie();
+                    PlayPauseCommand.RaiseCanExecuteChanged();
                 }
                 else
                 {
@@ -210,7 +202,6 @@ namespace MoviePlayer.ViewModel
                 if (!_stopwatch.IsRunning) return;
 
                 _stopwatch.Restart();
-                Notification = string.Empty;
 
                 if (IsPlaying && IsInteractionAllowed)
                 {
@@ -234,19 +225,6 @@ namespace MoviePlayer.ViewModel
             MoviePath = path;
             PlayMovie();
         }
-
-
-        /// <summary>
-        /// Initializes a new instance of the MainViewModel class.
-        /// </summary>
-        //public MainViewModel(ICameraService cameraService, IDetectionService processService)
-        //{
-        //    _cameraService = cameraService;
-        //    _detectionService = processService;
-        //    _detectionService.ImageWithDetectionChanged += _faceDetectionService_ImageChanged;
-
-        //    _cameraService.Run();
-        //}
 
         private void PlayPauseMovie()
         {

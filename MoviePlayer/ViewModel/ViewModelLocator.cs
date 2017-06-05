@@ -15,6 +15,8 @@
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Ioc;
 using Microsoft.Practices.ServiceLocation;
+using MoviePlayer.Services;
+using MoviePlayer.Services.Interfaces;
 
 namespace MoviePlayer.ViewModel
 {
@@ -31,31 +33,12 @@ namespace MoviePlayer.ViewModel
         {
             ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
 
-            ////if (ViewModelBase.IsInDesignModeStatic)
-            ////{
-            ////    // Create design time view services and models
-            ////    SimpleIoc.Default.Register<IDataService, DesignDataService>();
-            ////}
-            ////else
-            ////{
-            ////    // Create run time view services and models
-            ////    SimpleIoc.Default.Register<IDataService, DataService>();
-            ////}
-
+            SimpleIoc.Default.Register<ICameraService, CameraService>();
+            SimpleIoc.Default.Register<IDetectionService, DetectionService>();
+            SimpleIoc.Default.Register<IFileDialogService, FileDialogService>();
             SimpleIoc.Default.Register<MainViewModel>();
         }
 
-        public MainViewModel Main
-        {
-            get
-            {
-                return ServiceLocator.Current.GetInstance<MainViewModel>();
-            }
-        }
-        
-        public static void Cleanup()
-        {
-            // TODO Clear the ViewModels
-        }
+        public MainViewModel Main => ServiceLocator.Current.GetInstance<MainViewModel>();
     }
 }

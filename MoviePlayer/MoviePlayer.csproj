@@ -170,9 +170,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="haarcascade_eye.xml" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Images\play.png" />
   </ItemGroup>
   <ItemGroup>
@@ -196,6 +193,14 @@
   <ItemGroup>
     <Resource Include="Images\high volume.png" />
     <Resource Include="Images\low volume.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\red pause.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="haarcascade_eye.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

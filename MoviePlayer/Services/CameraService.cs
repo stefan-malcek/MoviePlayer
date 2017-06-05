@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using GalaSoft.MvvmLight.Messaging;
@@ -15,7 +16,7 @@ namespace MoviePlayer.Services
 
         public CameraService()
         {
-            _capture = new Capture();
+            _capture = new Capture(0);
             _worker = new BackgroundWorker { WorkerSupportsCancellation = true };
             _worker.DoWork += Worker_CaptureImage;
         }
@@ -34,6 +35,7 @@ namespace MoviePlayer.Services
 
         public void Run()
         {
+            Debug.WriteLine("Run called");
             _worker.RunWorkerAsync();
         }
 

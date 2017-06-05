@@ -122,16 +122,17 @@
                 </MenuItem>
             </MenuItem>
         </Menu>
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Background="Black">
             <MediaElement Name="Player" Source="{Binding MovieUri}" Volume="{Binding Volume}" ScrubbingEnabled="True" 
-                          MediaEnded="Player_OnMediaEnded" MediaOpened="Player_OnMediaOpened"
+                          MediaEnded="Player_OnMediaEnded" MediaOpened="Player_OnMediaOpened" 
                           LoadedBehavior="Manual" Stretch="Fill"/>
             <controls:ImageBoxControl x:Name="ImageBoxControl" ImageSource="{Binding Bitmap, Converter={StaticResource ImageSourceConverter}}" 
                                       VerticalAlignment="Bottom" HorizontalAlignment="Right" Milliseconds="{Binding Milliseconds}"
                                       Width="{Binding ElementName=MainWindowElement, Path=ActualWidth, Converter={StaticResource SizeConvertor}}"
                                       Height="{Binding ElementName=MainWindowElement, Path=ActualHeight, Converter={StaticResource SizeConvertor}}"
                                       Visibility="{Binding IsFeedbackActive, Converter={StaticResource VisibilityConverter}}"/>
-            <TextBlock Text="{Binding Notification}" Foreground="Red" FontSize="40" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <Image Width="100" Source="Images/red pause.png" Visibility="{Binding IsPaused, Converter={StaticResource VisibilityConverter}}" 
+                   VerticalAlignment="Center" HorizontalAlignment="Center"/>
         </Grid>
 
         <StatusBar Grid.Row="2">
